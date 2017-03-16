@@ -1,0 +1,59 @@
+实验
+
+1、将192.168.0.103机器上的spark集群先停止
+./sbin/stop-all.sh
+
+2、修改机器上的spark-env.sh文件，在其中加入上述三个属性
+export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=192.168.0.103:2181,192.168.0.104:2181 -Dspark.deploy.zookeeper.dir=/spark"
+
+3、启动集群
+在192.168.0.103上直接用启动集群：./sbin/start-all.sh
+
+4、在192.168.0.104上部署spark安装包，并启动一个master进程
+
+安装scala 2.11.4
+
+1、将课程提供的scala-2.11.4.tgz使用WinSCP拷贝到/usr/local/src目录下。
+2、对scala-2.11.4.tgz进行解压缩：tar -zxvf scala-2.11.4.tgz
+3、对scala目录进行重命名：mv scala-2.11.4 scala
+4、配置scala相关的环境变量
+vi ~/.bashrc
+export SCALA_HOME=/usr/local/scala
+export PATH=$SCALA_HOME/bin
+source ~/.bashrc
+5、查看scala是否安装成功：scala -version
+
+安装spark客户端
+
+1、将spark-1.5.1-bin-hadoop2.4.tgz使用WinSCP上传到/usr/local/src目录下。
+2、解压缩spark包：tar -zxvf spark-1.5.1-bin-hadoop2.4.tgz。
+3、重命名spark目录：mv spark-1.5.1-bin-hadoop2.4 spark
+4、修改spark环境变量
+vi ~/.bashrc
+export SPARK_HOME=/usr/local/spark
+export PATH=$SPARK_HOME/bin
+export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+source ~/.bashrc
+
+修改spark-env.sh文件
+
+1、cd /usr/local/spark/conf
+2、cp spark-env.sh.template spark-env.sh
+3、vi spark-env.sh
+export JAVA_HOME=/usr/java/latest
+export SCALA_HOME=/usr/local/scala
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
+export SPARK_MASTER_IP=192.168.0.104
+export SPARK_DAEMON_MEMORY=100m
+export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=192.168.0.103:2181,192.168.0.104:2181 -Dspark.deploy.zookeeper.dir=/spark"
+
+在192.168.0.104上单独启动一个standby master进程：./sbin/start-master.sh
+
+4、提交应用程序
+将master地址修改为192.168.0.103:7077,192.168.0.103:7078
+
+5、杀掉原先的leader master，等到standby master接管集群
+再次提交应用程序
+
+6、再次手动启动原来的leader master（死掉）
